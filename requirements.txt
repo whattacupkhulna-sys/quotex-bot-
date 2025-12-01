@@ -1,0 +1,7 @@
+numpy>=1.25.0
+rich>=13.0.0
+# If quotexapi is available via pip, add it here; otherwise install it from your local copy or repo.
+# Example (uncomment if available):
+# quotexapi>=0.1.0
+# Optional dev/test tools
+pytest>=7.0.0
