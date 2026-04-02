@@ -1,0 +1,58 @@
+2026-04-02 23:02:43.460 | WARNING  | api_quotex.config:_load_config:105 - config.json not found, using default configuration
+2026-04-02 23:02:43.460 | WARNING  | api_quotex.config:_load_session:141 - session.json not found, using default session data
+2026-04-02 23:02:43.460 | INFO     | api_quotex.config:__init__:78 - Config instance initialized successfully
+2026-04-02 23:02:54.341 | WARNING  | api_quotex.config:_load_config:105 - config.json not found, using default configuration
+2026-04-02 23:02:54.341 | WARNING  | api_quotex.config:_load_session:141 - session.json not found, using default session data
+2026-04-02 23:02:54.342 | INFO     | api_quotex.config:__init__:78 - Config instance initialized successfully
+2026-04-02 23:03:08.339 | WARNING  | api_quotex.config:_load_config:105 - config.json not found, using default configuration
+2026-04-02 23:03:08.339 | WARNING  | api_quotex.config:_load_session:141 - session.json not found, using default session data
+2026-04-02 23:03:08.339 | INFO     | api_quotex.config:__init__:78 - Config instance initialized successfully
+2026-04-02 23:03:25.851 | WARNING  | api_quotex.config:_load_config:105 - config.json not found, using default configuration
+2026-04-02 23:03:25.851 | WARNING  | api_quotex.config:_load_session:141 - session.json not found, using default session data
+2026-04-02 23:03:25.851 | INFO     | api_quotex.config:__init__:78 - Config instance initialized successfully
+2026-04-02 23:03:44.461 | WARNING  | api_quotex.config:_load_config:105 - config.json not found, using default configuration
+2026-04-02 23:03:44.462 | WARNING  | api_quotex.config:_load_session:141 - session.json not found, using default session data
+2026-04-02 23:03:44.462 | INFO     | api_quotex.config:__init__:78 - Config instance initialized successfully
+2026-04-02 23:03:44.614 | INFO     | api_quotex.client:__init__:151 - Initialized Quotex client (demo=True, persistent=False) with enhanced monitoring
+2026-04-02 23:03:44.617 | INFO     | api_quotex.client:connect:181 - Connecting to Quotex...
+2026-04-02 23:03:44.618 | INFO     | api_quotex.client:_start_regular_connection:206 - Starting regular connection...
+2026-04-02 23:03:44.620 | INFO     | api_quotex.client:_start_regular_connection:212 - Demo mode: Using demo regions: ['DEMO', 'LIVE']
+2026-04-02 23:03:44.768 | INFO     | api_quotex.client:_start_regular_connection:235 - Trying region: DEMO with URL: wss://ws2.qxbroker.com/socket.io/?EIO=3&transport=websocket
+2026-04-02 23:03:44.768 | INFO     | api_quotex.websocket_client:connect:154 - Attempting to connect to wss://ws2.qxbroker.com/socket.io/?EIO=3&transport=websocket
+2026-04-02 23:03:44.778 | WARNING  | api_quotex.websocket_client:connect:196 - Failed to connect to wss://ws2.qxbroker.com/socket.io/?EIO=3&transport=websocket: BaseEventLoop.create_connection() got an unexpected keyword argument 'extra_headers'
+2026-04-02 23:03:44.778 | ERROR    | api_quotex.monitoring:record_error:175 - [HIGH] connection: Failed to connect to wss://ws2.qxbroker.com/socket.io/?EIO=3&transport=websocket: BaseEventLoop.create_connection() got an unexpected keyword argument 'extra_headers'
+2026-04-02 23:03:44.779 | ERROR    | api_quotex.exceptions:__init__:14 - QuotexError: Failed to connect to any WebSocket endpoint (Code: None)
+2026-04-02 23:03:44.779 | WARNING  | api_quotex.client:_start_regular_connection:265 - Failed to connect to region DEMO: Failed to connect to any WebSocket endpoint
+2026-04-02 23:03:44.779 | ERROR    | api_quotex.monitoring:record_error:175 - [HIGH] connection: Failed to connect to DEMO: Failed to connect to any WebSocket endpoint
+2026-04-02 23:03:44.779 | INFO     | api_quotex.client:_start_regular_connection:279 - Waiting 1.80 seconds before next reconnect attempt
+2026-04-02 23:03:46.593 | INFO     | api_quotex.client:_start_regular_connection:235 - Trying region: LIVE with URL: wss://ws2.qxbroker.com/socket.io/?EIO=3&transport=websocket
+2026-04-02 23:03:46.593 | INFO     | api_quotex.websocket_client:connect:154 - Attempting to connect to wss://ws2.qxbroker.com/socket.io/?EIO=3&transport=websocket
+2026-04-02 23:03:46.594 | WARNING  | api_quotex.websocket_client:connect:196 - Failed to connect to wss://ws2.qxbroker.com/socket.io/?EIO=3&transport=websocket: BaseEventLoop.create_connection() got an unexpected keyword argument 'extra_headers'
+2026-04-02 23:03:46.594 | ERROR    | api_quotex.monitoring:record_error:175 - [HIGH] connection: Failed to connect to wss://ws2.qxbroker.com/socket.io/?EIO=3&transport=websocket: BaseEventLoop.create_connection() got an unexpected keyword argument 'extra_headers'
+2026-04-02 23:03:46.594 | ERROR    | api_quotex.exceptions:__init__:14 - QuotexError: Failed to connect to any WebSocket endpoint (Code: None)
+2026-04-02 23:03:46.594 | WARNING  | api_quotex.client:_start_regular_connection:265 - Failed to connect to region LIVE: Failed to connect to any WebSocket endpoint
+2026-04-02 23:03:46.594 | ERROR    | api_quotex.monitoring:record_error:175 - [HIGH] connection: Failed to connect to LIVE: Failed to connect to any WebSocket endpoint
+2026-04-02 23:03:46.595 | INFO     | api_quotex.client:_start_regular_connection:279 - Waiting 3.24 seconds before next reconnect attempt
+2026-04-02 23:03:49.837 | ERROR    | api_quotex.exceptions:__init__:14 - QuotexError: Failed to connect to any region after 2 attempts (Code: None)
+2026-04-02 23:03:49.837 | ERROR    | api_quotex.client:connect:195 - Connection failed: Failed to connect to any region after 2 attempts
+2026-04-02 23:03:49.837 | ERROR    | api_quotex.monitoring:record_error:175 - [HIGH] connection: Connection failed: Failed to connect to any region after 2 attempts
+2026-04-02 23:04:26.831 | WARNING  | api_quotex.config:_load_config:105 - config.json not found, using default configuration
+2026-04-02 23:04:26.831 | WARNING  | api_quotex.config:_load_session:141 - session.json not found, using default session data
+2026-04-02 23:04:26.831 | INFO     | api_quotex.config:__init__:78 - Config instance initialized successfully
+2026-04-02 23:13:17.713 | WARNING  | api_quotex.config:_load_config:105 - config.json not found, using default configuration
+2026-04-02 23:13:17.713 | WARNING  | api_quotex.config:_load_session:141 - session.json not found, using default session data
+2026-04-02 23:13:17.713 | INFO     | api_quotex.config:__init__:78 - Config instance initialized successfully
+2026-04-02 23:14:05.523 | WARNING  | api_quotex.config:_load_config:105 - config.json not found, using default configuration
+2026-04-02 23:14:05.523 | WARNING  | api_quotex.config:_load_session:141 - session.json not found, using default session data
+2026-04-02 23:14:05.524 | INFO     | api_quotex.config:__init__:78 - Config instance initialized successfully
+2026-04-02 23:14:22.096 | WARNING  | api_quotex.config:_load_config:105 - config.json not found, using default configuration
+2026-04-02 23:14:22.096 | WARNING  | api_quotex.config:_load_session:141 - session.json not found, using default session data
+2026-04-02 23:14:22.096 | INFO     | api_quotex.config:__init__:78 - Config instance initialized successfully
+2026-04-02 23:14:22.265 | INFO     | api_quotex.config:save_config:168 - Configuration saved to config.json
+2026-04-02 23:14:22.849 | INFO     | api_quotex.login:get_ssid:324 - Submitting login form via Cloudscraper with CSRF
+2026-04-02 23:14:23.490 | WARNING  | api_quotex.login:get_ssid:371 - Cloudscraper: neither session cookie nor token found; switching to Playwright
+2026-04-02 23:14:59.529 | INFO     | api_quotex.config:_load_config:103 - Configuration loaded from config.json
+2026-04-02 23:14:59.530 | WARNING  | api_quotex.config:_load_session:141 - session.json not found, using default session data
+2026-04-02 23:14:59.530 | INFO     | api_quotex.config:__init__:78 - Config instance initialized successfully
+2026-04-02 23:15:00.158 | INFO     | api_quotex.login:get_ssid:324 - Submitting login form via Cloudscraper with CSRF
+2026-04-02 23:15:00.777 | WARNING  | api_quotex.login:get_ssid:371 - Cloudscraper: neither session cookie nor token found; switching to Playwright
