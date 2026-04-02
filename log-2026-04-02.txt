@@ -56,3 +56,8 @@
 2026-04-02 23:14:59.530 | INFO     | api_quotex.config:__init__:78 - Config instance initialized successfully
 2026-04-02 23:15:00.158 | INFO     | api_quotex.login:get_ssid:324 - Submitting login form via Cloudscraper with CSRF
 2026-04-02 23:15:00.777 | WARNING  | api_quotex.login:get_ssid:371 - Cloudscraper: neither session cookie nor token found; switching to Playwright
+2026-04-02 23:19:37.793 | INFO     | api_quotex.config:_load_config:103 - Configuration loaded from config.json
+2026-04-02 23:19:37.794 | WARNING  | api_quotex.config:_load_session:141 - session.json not found, using default session data
+2026-04-02 23:19:37.794 | INFO     | api_quotex.config:__init__:78 - Config instance initialized successfully
+2026-04-02 23:19:38.435 | INFO     | api_quotex.login:get_ssid:324 - Submitting login form via Cloudscraper with CSRF
+2026-04-02 23:19:39.048 | WARNING  | api_quotex.login:get_ssid:371 - Cloudscraper: neither session cookie nor token found; switching to Playwright
