@@ -151,8 +151,8 @@ async def main():
                     border_style="green",
                 ))
 
-        console.print("\n[dim]Refreshing in 30 seconds... (Yahoo Finance rate limiting may apply)[/dim]")
-        await asyncio.sleep(30)
+        console.print("\n[dim]Refreshing in 15 seconds... (Yahoo Finance rate limiting may apply)[/dim]")
+        await asyncio.sleep(15)
 
 
 if __name__ == "__main__":
