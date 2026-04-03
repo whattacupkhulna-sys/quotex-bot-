@@ -13,3 +13,13 @@
 2026-04-03 10:44:37.179 | INFO     | api_quotex.config:__init__:78 - Config instance initialized successfully
 2026-04-03 10:44:37.748 | INFO     | api_quotex.login:get_ssid:324 - Submitting login form via Cloudscraper with CSRF
 2026-04-03 10:44:38.457 | WARNING  | api_quotex.login:get_ssid:371 - Cloudscraper: neither session cookie nor token found; switching to Playwright
+2026-04-03 10:45:22.246 | INFO     | api_quotex.config:_load_config:103 - Configuration loaded from config.json
+2026-04-03 10:45:22.246 | WARNING  | api_quotex.config:_load_session:141 - session.json not found, using default session data
+2026-04-03 10:45:22.246 | INFO     | api_quotex.config:__init__:78 - Config instance initialized successfully
+2026-04-03 10:45:22.680 | INFO     | api_quotex.login:get_ssid:324 - Submitting login form via Cloudscraper with CSRF
+2026-04-03 10:45:23.367 | WARNING  | api_quotex.login:get_ssid:371 - Cloudscraper: neither session cookie nor token found; switching to Playwright
+2026-04-03 10:46:13.706 | INFO     | api_quotex.config:_load_config:103 - Configuration loaded from config.json
+2026-04-03 10:46:13.706 | WARNING  | api_quotex.config:_load_session:141 - session.json not found, using default session data
+2026-04-03 10:46:13.707 | INFO     | api_quotex.config:__init__:78 - Config instance initialized successfully
+2026-04-03 10:46:14.172 | INFO     | api_quotex.login:get_ssid:324 - Submitting login form via Cloudscraper with CSRF
+2026-04-03 10:46:14.825 | WARNING  | api_quotex.login:get_ssid:371 - Cloudscraper: neither session cookie nor token found; switching to Playwright
