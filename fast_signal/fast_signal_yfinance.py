@@ -156,9 +156,27 @@ async def generate_signals(asset="EURUSD=X", timeframes=[15, 30, 60]):
     
     return signals
 
+
+def smooth_signals(asset_name, signals, history, min_stable=2):
+    """Mark each timeframe as stable only after it holds at least min_stable consecutive cycles."""
+    for tf, data in signals.items():
+        key = (asset_name, tf)
+        previous = history.get(key)
+        if previous and previous.get("signal") == data.get("signal"):
+            count = previous.get("count", 0) + 1
+        else:
+            count = 1
+
+        history[key] = {"signal": data.get("signal"), "count": count}
+        data["stable"] = "STABLE" if count >= min_stable else "UNSTABLE"
+
+    return signals
+
+
 async def display_signals(signals, asset_name="Unknown"):
     table = Table(title=f"📊 {asset_name} - High-Accuracy Signals", box=box.DOUBLE_EDGE, style="cyan")
     table.add_column("Asset", style="bold cyan", justify="center")
+    table.add_column("Time", style="white", justify="center")
     table.add_column("Timeframe", style="cyan", justify="center")
     table.add_column("RSI", style="magenta", justify="right")
     table.add_column("Price", style="white", justify="right")
@@ -167,6 +185,7 @@ async def display_signals(signals, asset_name="Unknown"):
     table.add_column("Stoch K", style="yellow", justify="right")
     table.add_column("Signal", style="bold", justify="center")
     table.add_column("Conf%", style="red", justify="right")
+    table.add_column("Status", style="yellow", justify="center")
     table.add_column("Action", style="bold", justify="center")
     
     for tf, data in signals.items():
@@ -178,6 +197,8 @@ async def display_signals(signals, asset_name="Unknown"):
         stoch = f"{data.get('stoch', 50):.1f}"
         signal = data['signal']
         confidence = data.get('confidence', 0)
+        timestamp = datetime.now().strftime("%H:%M:%S")
+        status = data.get('stable', 'UNSTABLE')
         
         # Signal color coding
         if "STRONG BUY" in signal:
@@ -196,7 +217,8 @@ async def display_signals(signals, asset_name="Unknown"):
             signal_style = "[yellow]NEUTRAL[/yellow]"
             action = "[dim]WAIT[/dim]"
         
-        table.add_row(asset_name, tf_str, rsi, price, macd, bb_pos, stoch, signal_style, f"{confidence}%", action)
+        status_style = "[green]STABLE[/green]" if status == "STABLE" else "[yellow]UNSTABLE[/yellow]"
+        table.add_row(asset_name, timestamp, tf_str, rsi, price, macd, bb_pos, stoch, signal_style, f"{confidence}%", status_style, action)
     
     console.print(table)
 
@@ -233,6 +255,8 @@ async def main():
     
     # Note: USD/BDT may not be available on yfinance, using closest alternatives
     timeframes = [15, 30, 60]  # 15s, 30s, 1m
+
+    signal_history = {}
     
     while True:
         try:
@@ -241,6 +265,7 @@ async def main():
             
             for symbol, asset_name in assets.items():
                 signals = await generate_signals(symbol, timeframes)
+                signals = smooth_signals(asset_name, signals, signal_history, min_stable=2)
                 await display_signals(signals, asset_name)
                 await display_asset_recommendation(asset_name, signals)
             
