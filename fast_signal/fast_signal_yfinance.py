@@ -156,8 +156,9 @@ async def generate_signals(asset="EURUSD=X", timeframes=[15, 30, 60]):
     
     return signals
 
-async def display_signals(signals):
-    table = Table(title=f"🚀 High-Accuracy Multi-Indicator Signals (yfinance) - {datetime.now().strftime('%H:%M:%S')}", box=box.DOUBLE_EDGE)
+async def display_signals(signals, asset_name="Unknown"):
+    table = Table(title=f"📊 {asset_name} - High-Accuracy Signals", box=box.DOUBLE_EDGE, style="cyan")
+    table.add_column("Asset", style="bold cyan", justify="center")
     table.add_column("Timeframe", style="cyan", justify="center")
     table.add_column("RSI", style="magenta", justify="right")
     table.add_column("Price", style="white", justify="right")
@@ -166,6 +167,7 @@ async def display_signals(signals):
     table.add_column("Stoch K", style="yellow", justify="right")
     table.add_column("Signal", style="bold", justify="center")
     table.add_column("Conf%", style="red", justify="right")
+    table.add_column("Action", style="bold", justify="center")
     
     for tf, data in signals.items():
         tf_str = f"{tf}s" if tf < 60 else f"{tf//60}m"
@@ -177,31 +179,72 @@ async def display_signals(signals):
         signal = data['signal']
         confidence = data.get('confidence', 0)
         
-        if "STRONG" in signal:
-            signal_style = f"[bold {'green' if 'BUY' in signal else 'red'}]{signal}[/bold {'green' if 'BUY' in signal else 'red'}]"
+        # Signal color coding
+        if "STRONG BUY" in signal:
+            signal_style = "[bold green]STRONG BUY[/bold green]"
+            action = "[bold green]→ CALL ✓[/bold green]"
+        elif "STRONG SELL" in signal:
+            signal_style = "[bold red]STRONG SELL[/bold red]"
+            action = "[bold red]→ PUT ✓[/bold red]"
         elif signal == "BUY":
             signal_style = "[green]BUY[/green]"
+            action = "[green]CALL[/green]"
         elif signal == "SELL":
             signal_style = "[red]SELL[/red]"
+            action = "[red]PUT[/red]"
         else:
             signal_style = "[yellow]NEUTRAL[/yellow]"
+            action = "[dim]WAIT[/dim]"
         
-        table.add_row(tf_str, rsi, price, macd, bb_pos, stoch, signal_style, f"{confidence}%")
+        table.add_row(asset_name, tf_str, rsi, price, macd, bb_pos, stoch, signal_style, f"{confidence}%", action)
     
     console.print(table)
 
+async def display_asset_recommendation(asset_name, signals):
+    """Show recommendation summary for the asset."""
+    best_signal = max(signals.values(), key=lambda x: x.get('confidence', 0))
+    
+    if best_signal['confidence'] >= 70:
+        recommendation = f"[bold green]✅ STRONG: {best_signal['signal']}[/bold green]"
+        action = "→ CALL" if "BUY" in best_signal['signal'] else "→ PUT"
+        action_style = "[bold green]" + action + "[/bold green]"
+    elif best_signal['confidence'] >= 50:
+        recommendation = f"[bold yellow]⚠️ MODERATE: {best_signal['signal']}[/bold yellow]"
+        action = "→ CALL" if "BUY" in best_signal['signal'] else "→ PUT"
+        action_style = "[bold yellow]" + action + "[/bold yellow]"
+    else:
+        recommendation = "[dim]🔔 WAIT[/dim]"
+        action = "NONE"
+        action_style = "[dim]NONE[/dim]"
+    
+    console.print(f"{recommendation} | Confidence: {best_signal['confidence']}% | Action: {action_style}\n")
+
 async def main():
     console.clear()
-    console.print("[bold cyan]🚀 Starting Near-Zero Delay Signal Generator (yfinance)...[/bold cyan]\n")
+    console.print("[bold cyan]🚀 Starting High-Accuracy Multi-Asset Signal Generator (yfinance)...[/bold cyan]\n")
     
-    asset = "EURUSD=X"  # yfinance symbol for EURUSD
-    timeframes = [15, 30, 60]
+    # Multiple assets
+    assets = {
+        "EURUSD=X": "EUR/USD",
+        "GBPUSD=X": "GBP/USD",
+        "JPY=X": "USD/JPY",
+        "BTC-USD": "BTC/USD"
+    }
+    
+    # Note: USD/BDT may not be available on yfinance, using closest alternatives
+    timeframes = [15, 30, 60]  # 15s, 30s, 1m
     
     while True:
         try:
-            signals = await generate_signals(asset, timeframes)
-            await display_signals(signals)
-            console.print("\n[dim]Refreshing in 1 second... (Near Zero Delay)[/dim]")
+            console.clear()
+            console.print(f"[bold cyan]🚀 Multi-Asset High-Accuracy Signals - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}[/bold cyan]\n")
+            
+            for symbol, asset_name in assets.items():
+                signals = await generate_signals(symbol, timeframes)
+                await display_signals(signals, asset_name)
+                await display_asset_recommendation(asset_name, signals)
+            
+            console.print(f"\n[dim]Refreshing in 1 second... (Near Zero Delay)[/dim]")
             await asyncio.sleep(1)
         except KeyboardInterrupt:
             console.print("\n[bold yellow]⏹️ Stopped by user.[/bold yellow]")
