@@ -28,3 +28,40 @@
 2026-04-03 10:47:42.142 | INFO     | api_quotex.config:__init__:78 - Config instance initialized successfully
 2026-04-03 10:47:42.647 | INFO     | api_quotex.login:get_ssid:324 - Submitting login form via Cloudscraper with CSRF
 2026-04-03 10:47:43.442 | WARNING  | api_quotex.login:get_ssid:371 - Cloudscraper: neither session cookie nor token found; switching to Playwright
+2026-04-03 11:32:29.948 | INFO     | api_quotex.config:_load_config:103 - Configuration loaded from config.json
+2026-04-03 11:32:29.951 | WARNING  | api_quotex.config:_load_session:141 - session.json not found, using default session data
+2026-04-03 11:32:29.951 | INFO     | api_quotex.config:__init__:78 - Config instance initialized successfully
+2026-04-03 11:32:30.800 | WARNING  | api_quotex.login:get_ssid:383 - Cloudscraper GET /sign-in failed with status 403; switching to Playwright
+2026-04-03 11:32:42.675 | INFO     | api_quotex.login:_playwright_login_and_capture:158 - Playwright: opening login page...
+2026-04-03 11:33:13.745 | ERROR    | api_quotex.login:_playwright_login_and_capture:221 - Playwright login failed: Page.wait_for_selector: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator("#tab-1 form[action$=\"/sign-in/\"]") to be visible
+
+2026-04-03 11:33:13.745 | ERROR    | api_quotex.monitoring:record_error:175 - [CRITICAL] authentication: Playwright login failed: Page.wait_for_selector: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator("#tab-1 form[action$=\"/sign-in/\"]") to be visible
+
+2026-04-03 11:33:13.829 | ERROR    | api_quotex.monitoring:record_error:175 - [CRITICAL] authentication: Unable to retrieve a valid SSID via Cloudscraper or Playwright.
+2026-04-03 13:19:56.427 | INFO     | api_quotex.config:_load_config:103 - Configuration loaded from config.json
+2026-04-03 13:19:56.427 | WARNING  | api_quotex.config:_load_session:141 - session.json not found, using default session data
+2026-04-03 13:19:56.427 | INFO     | api_quotex.config:__init__:78 - Config instance initialized successfully
+2026-04-03 13:31:19.143 | INFO     | api_quotex.config:_load_config:103 - Configuration loaded from config.json
+2026-04-03 13:31:19.144 | WARNING  | api_quotex.config:_load_session:141 - session.json not found, using default session data
+2026-04-03 13:31:19.144 | INFO     | api_quotex.config:__init__:78 - Config instance initialized successfully
+2026-04-03 13:31:19.308 | INFO     | api_quotex.config:save_config:168 - Configuration saved to config.json
+2026-04-03 13:31:19.625 | WARNING  | api_quotex.login:get_ssid:383 - Cloudscraper GET /sign-in failed with status 403; switching to Playwright
+2026-04-03 13:31:34.180 | INFO     | api_quotex.login:_playwright_login_and_capture:158 - Playwright: opening login page...
+2026-04-03 13:32:14.154 | INFO     | api_quotex.config:_load_config:103 - Configuration loaded from config.json
+2026-04-03 13:32:14.154 | WARNING  | api_quotex.config:_load_session:141 - session.json not found, using default session data
+2026-04-03 13:32:14.154 | INFO     | api_quotex.config:__init__:78 - Config instance initialized successfully
+2026-04-03 13:32:14.468 | WARNING  | api_quotex.login:get_ssid:383 - Cloudscraper GET /sign-in failed with status 403; switching to Playwright
+2026-04-03 13:32:15.112 | INFO     | api_quotex.login:_playwright_login_and_capture:158 - Playwright: opening login page...
+2026-04-03 13:32:45.202 | ERROR    | api_quotex.login:_playwright_login_and_capture:221 - Playwright login failed: Page.wait_for_selector: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator("#tab-1 form[action$=\"/sign-in/\"]") to be visible
+
+2026-04-03 13:32:45.203 | ERROR    | api_quotex.monitoring:record_error:175 - [CRITICAL] authentication: Playwright login failed: Page.wait_for_selector: Timeout 30000ms exceeded.
+Call log:
+  - waiting for locator("#tab-1 form[action$=\"/sign-in/\"]") to be visible
+
+2026-04-03 13:32:45.282 | ERROR    | api_quotex.monitoring:record_error:175 - [CRITICAL] authentication: Unable to retrieve a valid SSID via Cloudscraper or Playwright.

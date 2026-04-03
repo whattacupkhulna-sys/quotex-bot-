@@ -1,7 +1,5 @@
 {
     "email": "abcd34563489@gmail.com",
     "password": "{TtT<Tisha343433}",
-    "lang": "en",
-    "user_data_dir": ".",
-    "email_pass": null
+    "is_demo": true
 }

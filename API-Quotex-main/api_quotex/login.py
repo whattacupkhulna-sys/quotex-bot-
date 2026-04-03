@@ -140,12 +140,16 @@ async def _playwright_login_and_capture(email: str, password: str, lang: str, is
     login_url, target_url = _login_urls(lang, is_demo)
     async with async_playwright() as p:
         browser = await p.chromium.launch(
-            headless=False,
+            headless=True,
             args=[
                 "--disable-blink-features=AutomationControlled",
                 "--no-default-browser-check",
                 "--no-first-run",
-                "--start-maximized",
+                "--disable-gpu",
+                "--no-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-setuid-sandbox",
+                "--single-process",
             ],
         )
         context = await browser.new_context(viewport={"width": 1280, "height": 768})
