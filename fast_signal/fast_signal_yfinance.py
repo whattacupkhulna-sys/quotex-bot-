@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 
 import asyncio
+import os
+import sys
+from pathlib import Path
+
 import numpy as np
 import yfinance as yf
 from datetime import datetime
@@ -9,6 +13,25 @@ from rich.table import Table
 from rich import box
 
 console = Console()
+
+# Prefer Quotex live candles when available; fallback to yfinance otherwise.
+DATA_SOURCE = "QUOTEX"
+QUOTEX_ROOT = Path(__file__).resolve().parents[1] / "API-Quotex-main"
+QUOTEX_AVAILABLE = False
+AsyncQuotexClient = None
+get_ssid = None
+
+if QUOTEX_ROOT.exists():
+    sys.path.insert(0, str(QUOTEX_ROOT))
+    try:
+        from api_quotex.client import AsyncQuotexClient
+        from api_quotex.login import get_ssid
+        QUOTEX_AVAILABLE = True
+    except Exception:
+        QUOTEX_AVAILABLE = False
+
+if not QUOTEX_AVAILABLE:
+    DATA_SOURCE = "YFINANCE"
 
 class TechnicalAnalysis:
     @staticmethod
@@ -68,29 +91,123 @@ class TechnicalAnalysis:
         d = k  # For simplicity, can improve
         return float(k), float(d)
 
+    @staticmethod
+    def calculate_trend_strength(prices, short=5, long=20):
+        prices = np.asarray(prices, dtype=float)
+        if len(prices) < long:
+            return 0.0
+        short_ma = np.mean(prices[-short:])
+        long_ma = np.mean(prices[-long:])
+        return float((short_ma - long_ma) / long_ma * 100.0)
+
+    @staticmethod
+    def ai_predict_signal(rsi, macd_dir, bb_position, stoch_k, trend_strength):
+        score = 0.0
+        score += (50.0 - rsi) * 0.4
+        score += 10.0 if macd_dir == "BULLISH" else -10.0 if macd_dir == "BEARISH" else 0.0
+        score += 7.0 if bb_position == "BELOW" else -7.0 if bb_position == "ABOVE" else 0.0
+        score += (50.0 - stoch_k) * 0.2
+        score += trend_strength * 0.5
+        ai_direction = "BUY" if score > 15 else "SELL" if score < -15 else "NEUTRAL"
+        return float(score), ai_direction
+
+QUOTEX_ASSET_MAP = {
+    "EURUSD=X": "EURUSD",
+    "GBPUSD=X": "GBPUSD",
+    "JPY=X": "USDJPY",
+    "BTC-USD": "BTCUSD_otc",
+}
+
+class QuotexDataSource:
+    def __init__(self):
+        self.client = None
+        self.connected = False
+
+    async def connect(self):
+        if not QUOTEX_AVAILABLE:
+            return False
+        try:
+            success, session_data = await get_ssid()
+            if not success or not session_data:
+                return False
+            ssid = session_data.get("ssid")
+            if not ssid:
+                return False
+            self.client = AsyncQuotexClient(
+                ssid=ssid,
+                is_demo=session_data.get("is_demo", True),
+                persistent_connection=False,
+                enable_logging=False,
+            )
+            self.connected = await self.client.connect()
+            return self.connected
+        except Exception:
+            return False
+
+    def map_asset(self, asset):
+        return QUOTEX_ASSET_MAP.get(asset, asset.replace("=X", "").replace("-USD", "USD").replace("/", "").upper())
+
+    async def get_prices(self, asset, minutes=120):
+        if not self.client or not self.connected:
+            return []
+        try:
+            quotex_symbol = self.map_asset(asset)
+            df = await self.client.get_candles_dataframe(quotex_symbol, "1m", count=minutes)
+            if df.empty:
+                return []
+            return df["close"].tolist()
+        except Exception:
+            return []
+
+    async def disconnect(self):
+        if self.client:
+            try:
+                await self.client.disconnect()
+            except Exception:
+                pass
+            self.client = None
+            self.connected = False
+
+quotex_source = QuotexDataSource()
+
 async def get_live_data(asset="EURUSD=X", minutes=60):
-    """Get live data from yfinance."""
+    """Fetch live close prices from Quotex or yfinance."""
+    if DATA_SOURCE == "QUOTEX" and QUOTEX_AVAILABLE:
+        prices = await quotex_source.get_prices(asset, minutes)
+        if prices:
+            return prices
+        # Fallback if Quotex data is unavailable.
     try:
         ticker = yf.Ticker(asset)
         data = ticker.history(period="1d", interval="1m").tail(minutes)
         if data.empty:
             return []
         return data['Close'].tolist()
-    except:
+    except Exception:
         return []
 
-async def generate_signals(asset="EURUSD=X", timeframes=[15, 30, 60]):
+async def generate_signals(asset="EURUSD=X", timeframes=[60]):
     signals = {}
-    prices = await get_live_data(asset, 60)
+    prices = await get_live_data(asset, 120)
     if not prices:
         for tf in timeframes:
-            signals[tf] = {"rsi": 50.0, "price": 0.0, "signal": "NO DATA", "confidence": 0}
+            signals[tf] = {"rsi": 50.0, "price": 0.0, "signal": "NO DATA", "confidence": 0, "ai_signal": "NEUTRAL", "ai_score": 0.0}
         return signals
     
     for tf in timeframes:
         sampled_prices = prices[-tf:] if len(prices) >= tf else prices
         if len(sampled_prices) < 20:  # Need more for indicators
-            signals[tf] = {"rsi": 50.0, "price": prices[-1] if prices else 0.0, "signal": "INSUFFICIENT DATA", "confidence": 0}
+            signals[tf] = {
+                "rsi": 50.0,
+                "price": prices[-1] if prices else 0.0,
+                "signal": "INSUFFICIENT DATA",
+                "confidence": 0,
+                "ai_signal": "NEUTRAL",
+                "ai_score": 0.0,
+                "macd": "N/A",
+                "bb_position": "N/A",
+                "stoch": 50.0,
+            }
             continue
         
         current_price = sampled_prices[-1]
@@ -98,51 +215,62 @@ async def generate_signals(asset="EURUSD=X", timeframes=[15, 30, 60]):
         macd_line, macd_signal, macd_hist, macd_dir = TechnicalAnalysis.calculate_macd(sampled_prices)
         upper_bb, sma_bb, lower_bb = TechnicalAnalysis.calculate_bollinger_bands(sampled_prices)
         stoch_k, stoch_d = TechnicalAnalysis.calculate_stochastic(sampled_prices)
+        trend_strength = TechnicalAnalysis.calculate_trend_strength(sampled_prices)
+        ai_score, ai_signal = TechnicalAnalysis.ai_predict_signal(rsi, macd_dir, "BELOW" if current_price < lower_bb else "ABOVE" if current_price > upper_bb else "MIDDLE", stoch_k, trend_strength)
         
-        # Advanced Signal Logic with Multi-Indicator Confirmation
+        # Strong multi-indicator scoring
         buy_score = 0
         sell_score = 0
         
-        # RSI
-        if rsi < 30:
+        if rsi < 35:
             buy_score += 30
-        elif rsi > 70:
+        elif rsi > 65:
             sell_score += 30
         
-        # MACD
         if macd_dir == "BULLISH":
             buy_score += 25
         elif macd_dir == "BEARISH":
             sell_score += 25
         
-        # Bollinger Bands
         if current_price < lower_bb:
             buy_score += 20
         elif current_price > upper_bb:
             sell_score += 20
         
-        # Stochastic
-        if stoch_k < 20:
+        if stoch_k < 25:
             buy_score += 15
-        elif stoch_k > 80:
+        elif stoch_k > 75:
             sell_score += 15
         
-        # Final Decision
-        if buy_score >= 50:
+        if trend_strength > 0.2:
+            buy_score += min(15, int(trend_strength * 2))
+        elif trend_strength < -0.2:
+            sell_score += min(15, int(-trend_strength * 2))
+        
+        if ai_signal == "BUY":
+            buy_score += 10
+        elif ai_signal == "SELL":
+            sell_score += 10
+        
+        if buy_score >= sell_score + 20:
             signal = "STRONG BUY"
             confidence = min(100, buy_score)
-        elif sell_score >= 50:
+        elif sell_score >= buy_score + 20:
             signal = "STRONG SELL"
             confidence = min(100, sell_score)
-        elif buy_score >= 30:
+        elif buy_score > sell_score:
             signal = "BUY"
-            confidence = buy_score
-        elif sell_score >= 30:
+            confidence = min(100, buy_score)
+        elif sell_score > buy_score:
             signal = "SELL"
-            confidence = sell_score
+            confidence = min(100, sell_score)
         else:
             signal = "NEUTRAL"
-            confidence = 0
+            confidence = max(0, min(100, int(abs(ai_score))))
+        
+        if signal == "NEUTRAL" and abs(ai_score) >= 30:
+            signal = f"AI-{ai_signal}"
+            confidence = min(100, max(confidence, int(abs(ai_score))))
         
         signals[tf] = {
             "rsi": rsi,
@@ -151,7 +279,9 @@ async def generate_signals(asset="EURUSD=X", timeframes=[15, 30, 60]):
             "confidence": confidence,
             "macd": macd_dir,
             "bb_position": "BELOW" if current_price < lower_bb else "ABOVE" if current_price > upper_bb else "MIDDLE",
-            "stoch": stoch_k
+            "stoch": stoch_k,
+            "ai_signal": ai_signal,
+            "ai_score": ai_score,
         }
     
     return signals
@@ -175,18 +305,18 @@ def smooth_signals(asset_name, signals, history, min_stable=2):
 
 async def display_signals(signals, asset_name="Unknown"):
     table = Table(title=f"📊 {asset_name} - High-Accuracy Signals", box=box.DOUBLE_EDGE, style="cyan")
-    table.add_column("Asset", style="bold cyan", justify="center")
     table.add_column("Time", style="white", justify="center")
-    table.add_column("Timeframe", style="cyan", justify="center")
+    table.add_column("TF", style="cyan", justify="center")
     table.add_column("RSI", style="magenta", justify="right")
     table.add_column("Price", style="white", justify="right")
     table.add_column("MACD", style="blue", justify="center")
-    table.add_column("BB Pos", style="green", justify="center")
-    table.add_column("Stoch K", style="yellow", justify="right")
+    table.add_column("BB", style="green", justify="center")
+    table.add_column("Stoch", style="yellow", justify="right")
     table.add_column("Signal", style="bold", justify="center")
+    table.add_column("AI", style="cyan", justify="center")
     table.add_column("Conf%", style="red", justify="right")
-    table.add_column("Status", style="yellow", justify="center")
-    table.add_column("Action", style="bold", justify="center")
+    table.add_column("Stat", style="yellow", justify="center")
+    table.add_column("Act", style="bold", justify="center")
     
     for tf, data in signals.items():
         tf_str = f"{tf}s" if tf < 60 else f"{tf//60}m"
@@ -196,16 +326,17 @@ async def display_signals(signals, asset_name="Unknown"):
         bb_pos = data.get('bb_position', 'N/A')
         stoch = f"{data.get('stoch', 50):.1f}"
         signal = data['signal']
+        ai_signal = data.get('ai_signal', 'NEUTRAL')
         confidence = data.get('confidence', 0)
         timestamp = datetime.now().strftime("%H:%M:%S")
         status = data.get('stable', 'UNSTABLE')
         
         # Signal color coding
-        if "STRONG BUY" in signal:
-            signal_style = "[bold green]STRONG BUY[/bold green]"
+        if "STRONG BUY" in signal or signal.startswith("AI-BUY"):
+            signal_style = f"[bold green]{signal}[/bold green]"
             action = "[bold green]→ CALL ✓[/bold green]"
-        elif "STRONG SELL" in signal:
-            signal_style = "[bold red]STRONG SELL[/bold red]"
+        elif "STRONG SELL" in signal or signal.startswith("AI-SELL"):
+            signal_style = f"[bold red]{signal}[/bold red]"
             action = "[bold red]→ PUT ✓[/bold red]"
         elif signal == "BUY":
             signal_style = "[green]BUY[/green]"
@@ -218,7 +349,7 @@ async def display_signals(signals, asset_name="Unknown"):
             action = "[dim]WAIT[/dim]"
         
         status_style = "[green]STABLE[/green]" if status == "STABLE" else "[yellow]UNSTABLE[/yellow]"
-        table.add_row(asset_name, timestamp, tf_str, rsi, price, macd, bb_pos, stoch, signal_style, f"{confidence}%", status_style, action)
+        table.add_row(timestamp, tf_str, rsi, price, macd, bb_pos, stoch, signal_style, ai_signal, f"{confidence}%", status_style, action)
     
     console.print(table)
 
@@ -254,7 +385,7 @@ async def main():
     }
     
     # Note: USD/BDT may not be available on yfinance, using closest alternatives
-    timeframes = [15, 30, 60]  # 15s, 30s, 1m
+    timeframes = [60]  # Use 1-minute signals for higher stability
 
     signal_history = {}
     
@@ -265,12 +396,12 @@ async def main():
             
             for symbol, asset_name in assets.items():
                 signals = await generate_signals(symbol, timeframes)
-                signals = smooth_signals(asset_name, signals, signal_history, min_stable=2)
+                signals = smooth_signals(asset_name, signals, signal_history, min_stable=3)
                 await display_signals(signals, asset_name)
                 await display_asset_recommendation(asset_name, signals)
             
-            console.print(f"\n[dim]Refreshing in 1 second... (Near Zero Delay)[/dim]")
-            await asyncio.sleep(1)
+            console.print(f"\n[dim]Refreshing in 5 seconds... (Stable Monitoring)[/dim]")
+            await asyncio.sleep(5)
         except KeyboardInterrupt:
             console.print("\n[bold yellow]⏹️ Stopped by user.[/bold yellow]")
             break
